@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blockchain Viewer</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Blockchain Viewer</h1>
+      <hr />
+      <br />
+      <div class="button-group">
+        <button onclick="fetchBlockchain()">Refresh Blockchain</button>
+        <button onclick="addBlock()">Add New Block</button>
+        <button onclick="tamperBlock()">Tamper with Block</button>
+      </div>
+      <table id="blockchainTable">
+        <thead>
+          <tr>
+            <th>Index</th>
+            <th>Previous Hash</th>
+            <th>Current Hash</th>
+            <th>Data</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <script>
+      async function fetchBlockchain() {
+        const response = await fetch("/blockchain");
+        const blockchain = await response.json();
+        const tableBody = document.querySelector("#blockchainTable tbody");
+        tableBody.innerHTML = "";
+
+        blockchain.forEach((block) => {
+          const row = document.createElement("tr");
+          row.className = block.tampered ? "tampered" : "";
+          row.innerHTML = `
+                    <td>${block.index}</td>
+                    <td>${block.previous_hash}</td>
+                    <td>${block.hash}</td>
+                    <td>${block.data}</td>
+                    <td>${new Date(
+                      block.timestamp * 1000
+                    ).toLocaleString()}</td>
+                `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      async function addBlock() {
+        const data = prompt("Enter block data:");
+        if (data) {
+          await fetch("/add_block", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ data }),
+          });
+          fetchBlockchain();
+        }
+      }
+
+      async function tamperBlock() {
+        const index = parseInt(
+          prompt("Enter block index to tamper (0-based):"),
+          10
+        );
+        const newData = prompt("Enter new data for Block:");
+        if (!isNaN(index) && newData) {
+          await fetch("/tamper_block", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ index, data: newData }),
+          });
+          fetchBlockchain();
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", fetchBlockchain);
+    </script>
+  </body>
+</html>
