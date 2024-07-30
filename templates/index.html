@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Blockchain Viewer</title>
+    <title>Transactional Blockchain Viewer</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
@@ -11,14 +11,14 @@
   </head>
   <body>
     <div class="container">
-      <h1>Blockchain Viewer</h1>
+      <h1>Transactional Blockchain Viewer</h1>
       <hr />
       <br />
       <div class="button-group">
         <button onclick="fetchBlockchain()">Refresh Blockchain</button>
-        <button onclick="addBlock()">Add New Block</button>
-        <button onclick="tamperBlock()">Tamper with Block</button>
-        <button onclick="updateBlock()">Update Block</button>
+        <button onclick="addTransaction()">Add New Transaction</button>
+        <button onclick="tamperTransaction()">Tamper with Transaction</button>
+        <button onclick="updateTransaction()">Update Transaction</button>
       </div>
       <table id="blockchainTable">
         <thead>
@@ -26,7 +26,9 @@
             <th>Index</th>
             <th>Previous Hash</th>
             <th>Current Hash</th>
-            <th>Data</th>
+            <th>Sender</th>
+            <th>Receiver</th>
+            <th>Amount</th>
             <th>Timestamp</th>
             <th>Is Tampered</th>
           </tr>
@@ -48,7 +50,9 @@
                     <td>${block.index}</td>
                     <td>${block.previous_hash}</td>
                     <td>${block.hash}</td>
-                    <td>${block.data}</td>
+                    <td>${block.sender}</td>
+                    <td>${block.receiver}</td>
+                    <td>${block.amount}</td>
                     <td>${new Date(
                       block.timestamp * 1000
                     ).toLocaleString()}</td>
@@ -58,51 +62,67 @@
         });
       }
 
-      async function addBlock() {
-        const data = prompt("Enter block data:");
-        if (data) {
-          await fetch("/add_block", {
+      async function addTransaction() {
+        const sender = prompt("Enter sender name:");
+        const receiver = prompt("Enter receiver name:");
+        const amount = parseFloat(prompt("Enter amount:"));
+        if (sender && receiver && !isNaN(amount)) {
+          await fetch("/add_transaction", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ data }),
+            body: JSON.stringify({ sender, receiver, amount }),
           });
           fetchBlockchain();
         }
       }
 
-      async function tamperBlock() {
+      async function tamperTransaction() {
         const index = parseInt(
           prompt("Enter block index to tamper (0-based):"),
           10
         );
-        const newData = prompt("Enter new data for Block:");
-        if (!isNaN(index) && newData) {
-          await fetch("/tamper_block", {
+        const newSender = prompt("Enter new sender name:");
+        const newReceiver = prompt("Enter new receiver name:");
+        const newAmount = parseFloat(prompt("Enter new amount:"));
+        if (!isNaN(index) && newSender && newReceiver && !isNaN(newAmount)) {
+          await fetch("/tamper_transaction", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ index, data: newData }),
+            body: JSON.stringify({
+              index,
+              sender: newSender,
+              receiver: newReceiver,
+              amount: newAmount,
+            }),
           });
           fetchBlockchain();
         }
       }
 
-      async function updateBlock() {
+      async function updateTransaction() {
         const index = parseInt(
           prompt("Enter block index to update (0-based):"),
           10
         );
-        const newData = prompt("Enter new data for Block:");
-        if (!isNaN(index) && newData) {
-          await fetch("/update_block", {
+        const newSender = prompt("Enter new sender name:");
+        const newReceiver = prompt("Enter new receiver name:");
+        const newAmount = parseFloat(prompt("Enter new amount:"));
+        if (!isNaN(index) && newSender && newReceiver && !isNaN(newAmount)) {
+          await fetch("/update_transaction", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ index, data: newData }),
+            body: JSON.stringify({
+              index,
+              sender: newSender,
+              receiver: newReceiver,
+              amount: newAmount,
+            }),
           });
           fetchBlockchain();
         }
