@@ -82,5 +82,15 @@ def tamper_block():
         return jsonify({'status': 'Block tampered successfully!', 'tampered_blocks': [block.index for block in blockchain if block.is_tampered]})
     return jsonify({'status': 'Invalid block index!'}), 400
 
+@app.route('/update_block', methods=['POST'])
+def update_block():
+    index = request.json.get('index')
+    new_data = request.json.get('data')
+    if 0 <= index < len(blockchain):
+        blockchain[index].data = new_data
+        recalculate_hashes()
+        return jsonify({'status': 'Block updated successfully!', 'updated_blocks': [block.index for block in blockchain]})
+    return jsonify({'status': 'Invalid block index!'}), 400
+
 if __name__ == '__main__':
     app.run(debug=True)
